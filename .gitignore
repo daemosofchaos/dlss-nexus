@@ -1,0 +1,26 @@
+# Local deployment assets: obtain only when authorized; never publish by accident.
+/payload/
+/dist/
+/archive/
+/tests/
+**/TestResults/
+**/bin/
+**/obj/
+/.vs/
+/.idea/
+**/__pycache__/
+*.user
+*.suo
+*.log
+*.pdb
+*.dll
+*.exe
+*.addon64
+*.zip
+*.7z
+*.backup
+*.tmp
+.env
+.env.*
+Thumbs.db
+Desktop.ini

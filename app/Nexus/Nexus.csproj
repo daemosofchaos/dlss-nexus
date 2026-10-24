@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>DLSS-Nexus</AssemblyName>
+    <RootNamespace>Nexus</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>DLSS Nexus</Product>
+    <Description>DLSS injection and game library manager</Description>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../Assets/Brand/nexus.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="../Assets/Brand/nexus.ico" Link="Brand/nexus.ico" />
+    <Resource Include="../Assets/Brand/nexus-mark.png" Link="Brand/nexus-mark.png" />
+    <ProjectReference Include="../Nexus.Core/Nexus.Core.csproj" />
+    <EmbeddedResource Include="../Assets/catalog.json" LogicalName="catalog.json" />
+    <EmbeddedResource Include="../../payload/**/*" LogicalName="payload/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../templates/DLSS-Nexus.ini" LogicalName="templates/DLSS-Nexus.ini" />
+  </ItemGroup>
+  <Target Name="VerifyDeploymentPayloadsBeforePublish" BeforeTargets="PrepareForPublish" DependsOnTargets="Build">
+    <Exec Command="dotnet &quot;$(TargetPath)&quot; --verify-package &quot;$(IntermediateOutputPath)publish-integrity.json&quot;" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="PayloadVerificationExitCode" />
+    </Exec>
+    <Error Condition="'$(PayloadVerificationExitCode)' != '0'" Text="Publishing requires every authorized local payload with the exact hashes in app/Assets/catalog.json. Source-only builds and synthetic tests do not require payloads. See app/BUILD.md." />
+  </Target>
+</Project>

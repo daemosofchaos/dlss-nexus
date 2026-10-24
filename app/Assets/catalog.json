@@ -1,0 +1,139 @@
+{
+  "bundleVersion": "2026-10-24",
+  "consumerSelections": {
+    "default": {
+      "payloadPath": "renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "family": "Controller"
+    },
+    "experimental": {
+      "payloadPath": "experimental/renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "family": "Controller"
+    },
+    "legacy": {
+      "payloadPath": "legacy/renodx-dlss5.addon64",
+      "targetPath": "renodx-dlss5.addon64",
+      "family": "Generic"
+    },
+    "dx10": {
+      "payloadPath": "dx10/renodx-dlss5.addon64",
+      "targetPath": "renodx-dlss5.addon64",
+      "family": "Generic"
+    }
+  },
+  "components": [
+    {
+      "payloadPath": "dx10/renodx-dlss5.addon64",
+      "targetPath": "renodx-dlss5.addon64",
+      "sha256": "FF8B9738738265E09F01A1C470A0CB0A59EB021B2B23797C3DF7CEA722A724B6",
+      "version": "RenoDX DLSS5 Generic v7.0.0-rc8"
+    },
+    {
+      "payloadPath": "dx10/dlss5-feed-helper.addon64",
+      "targetPath": "dlss5-feed-helper.addon64",
+      "sha256": "C069AA9D8B01FCEE34234BC458A798C3BE6F27FC8B9F23B74B5FB1784A828886",
+      "version": "1.19.0"
+    },
+    {
+      "payloadPath": "dx10/host64/dlss5-feed-host64.exe",
+      "targetPath": "host64/dlss5-feed-host64.exe",
+      "sha256": "79E427430C5C0102F6C7A557155B706AD51B0C40933F6E245FCE922BF5B1401E",
+      "version": "1.19.0"
+    },
+    {
+      "payloadPath": "dlss5-feed.addon64",
+      "targetPath": "dlss5-feed.addon64",
+      "sha256": "2B8C905012FD464DDF0554C6B178CBA55030EC10EB917ACDCEE0E7A2376FE4DD",
+      "version": "1.19.0"
+    },
+    {
+      "payloadPath": "renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "sha256": "A8FD34B531FD22C3DBD008ED8FD3CBFCCA2FB451729E19CD1FC2E4C85B5068D4",
+      "version": "0.2026.1016.1704"
+    },
+    {
+      "payloadPath": "experimental/renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "sha256": "A8FD34B531FD22C3DBD008ED8FD3CBFCCA2FB451729E19CD1FC2E4C85B5068D4",
+      "version": "0.2026.1016.1704"
+    },
+    {
+      "payloadPath": "legacy/renodx-dlss5.addon64",
+      "targetPath": "renodx-dlss5.addon64",
+      "sha256": "D5ADF82EB44B065F4C590AC91FE824BAB07AFEA0EB9F994BDE936710C8593952",
+      "version": "RenoDX DLSS5 Generic v4.7"
+    },
+    {
+      "payloadPath": "nvngx_dlss.dll",
+      "targetPath": "nvngx_dlss.dll",
+      "sha256": "C85F971CE023C9F3492FC7455F0B01A24BA18EA39636407A846902C4360B0B7E",
+      "version": "310.8.0.0",
+      "signatureStatus": "Valid"
+    },
+    {
+      "payloadPath": "nvngx_dlssnr.dll",
+      "targetPath": "nvngx_dlssnr.dll",
+      "sha256": "CDFA6C1EC784867182164C7836F324F087B5C9F374D0C9FE46F54999FEABF3ED",
+      "version": "310.9.16.0",
+      "signatureStatus": "NotSigned"
+    },
+    {
+      "payloadPath": "dlss5-feed.cfg",
+      "targetPath": "dlss5-feed.cfg",
+      "sha256": "1C2E5853CC0A1A260E7481E5D384A09EB749091339DF3CE53E46F0B8ED10426A"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/DLSS5_Feed.fx",
+      "targetPath": "reshade-shaders/Shaders/DLSS5_Feed.fx",
+      "sha256": "C4BA1610DF8E1593FAA7C203D6D0517058D3A8ECF2DFDA18CA67849844391456",
+      "version": "1.19.0 release shader"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/lumenite_Kernel.fx",
+      "targetPath": "reshade-shaders/Shaders/lumenite_Kernel.fx",
+      "sha256": "463D2BADA33FD3058383BC0273ABA74DF9D5F1DB75FE13D8F305A22BF94526E3"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/ReShade.fxh",
+      "targetPath": "reshade-shaders/Shaders/ReShade.fxh",
+      "sha256": "6DABFBBAF968C3871905D2EA17F96572FF7B1CEC01310B5D0E5252B66B30174F"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/ReShadeUI.fxh",
+      "targetPath": "reshade-shaders/Shaders/ReShadeUI.fxh",
+      "sha256": "78ADF672DF47460297EB9FE6DD238D2AAFA24510B52B84FEB1A745DFF70EB901"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/DrawText.fxh",
+      "targetPath": "reshade-shaders/Shaders/DrawText.fxh",
+      "sha256": "B79CC4DFB3E98BCF4C06193D00EA7631D74F467F73A4DEEEEE13E71336D3E680"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/include/lumenite_Compute.fxh",
+      "targetPath": "reshade-shaders/Shaders/include/lumenite_Compute.fxh",
+      "sha256": "736E3F39FC0C48A405C4D10B0D158502009DB940E2673FF778E6B919D3C1A55F"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/include/lumenite_Helpers.fxh",
+      "targetPath": "reshade-shaders/Shaders/include/lumenite_Helpers.fxh",
+      "sha256": "8826D613944BE27E14095982B20098FFF6D45E91C7D4028473C2F5B784C80028"
+    },
+    {
+      "payloadPath": "reshade-shaders/Shaders/include/lumenite_Projections.fxh",
+      "targetPath": "reshade-shaders/Shaders/include/lumenite_Projections.fxh",
+      "sha256": "709EC414649B74E573CA0F12A5EF25998D332238F7CAB14A3D91053C8D388CAB"
+    },
+    {
+      "payloadPath": "reshade-shaders/Textures/lumenite_bluenoise256.png",
+      "targetPath": "reshade-shaders/Textures/lumenite_bluenoise256.png",
+      "sha256": "2AD9E5B0BD28DDFF569DBD756A551FE8E681B67EB72A83BB027434E1BE24122B"
+    },
+    {
+      "payloadPath": "templates/DLSS-Nexus.ini",
+      "targetPath": "DLSS-Nexus.ini",
+      "sha256": "11B0CAA7401D234EAEF94A35AFE6E44DB77999AEFC2CE1D1B8AB8BF0B650CD00"
+    }
+  ]
+}
