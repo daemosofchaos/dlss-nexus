@@ -46,17 +46,26 @@ public sealed partial class InstallerEngine(BundleCatalog catalog)
         string profile = helper && options.Profile == "default" ? "dx10" : options.Profile;
         if (!catalog.Manifest.ConsumerSelections.TryGetValue(profile, out var selection))
             throw new InvalidOperationException("Choose a supported installation profile.");
+        var addonBuild = catalog.ResolveAddonBuild(profile, options.AddonBuild);
+        selection = addonBuild ?? selection;
+        var runtimeBuild = catalog.ResolveNeuralRuntimeBuild(options.NeuralRuntimeBuild);
+        var runtimeComponent = catalog.GetComponent(runtimeBuild?.PayloadPath ?? "nvngx_dlssnr.dll");
         string family = selection.Family;
         string consumerTarget = selection.TargetPath;
         string consumerSource = "payload/" + selection.PayloadPath;
         string consumerHash = catalog.GetComponent(selection.PayloadPath).Sha256;
+        string addonLabel = addonBuild?.Label ?? (family == "Controller" ? "ShortFuse" : "RenoDX Generic") +
+            " " + catalog.GetComponent(selection.PayloadPath).Version;
         if (options.Profile == "experimental" && options.ExperimentalAddon is { } custom)
         {
+            if (options.AddonBuild != null)
+                throw new InvalidOperationException("Choose either a custom add-on or a bundled add-on version, not both.");
             FileSafety.EnsureNoLinks(custom);
             family = FileSafety.AddonFamily(custom);
             consumerTarget = family == "Controller" ? "renodx-dlss.addon64" : "renodx-dlss5.addon64";
             consumerSource = "custom:" + Path.GetFullPath(custom);
             consumerHash = FileSafety.Hash(custom);
+            addonLabel = "Custom add-on: " + Path.GetFileName(custom);
         }
         if (family is not ("Controller" or "Generic") ||
             consumerTarget != (family == "Controller" ? "renodx-dlss.addon64" : "renodx-dlss5.addon64"))
@@ -66,7 +75,17 @@ public sealed partial class InstallerEngine(BundleCatalog catalog)
         using (var addon = Open(consumerSource))
             if (FileSafety.AddonFamily(addon) != family)
                 throw new InvalidOperationException("The selected add-on does not match the package configuration.");
-        var plan = new InstallPlan { Target = target, Options = options, Family = family };
+        using (var runtime = Open("payload/" + runtimeComponent.PayloadPath))
+            if (!FileSafety.IsX64(runtime)) throw new InvalidOperationException("The selected neural runtime is not 64-bit.");
+        var plan = new InstallPlan
+        {
+            Target = target, Options = options, Family = family,
+            AddonBuildId = consumerSource.StartsWith("custom:", StringComparison.Ordinal) ? null : addonBuild?.Id,
+            NeuralRuntimeBuildId = runtimeBuild?.Id, AddonLabel = addonLabel.Trim(),
+            NeuralRuntimeLabel = runtimeBuild?.Label ?? "DLSS-NR " + runtimeComponent.Version
+        };
+        if (addonBuild?.Notes is { Length: > 0 } addonNotes && !consumerSource.StartsWith("custom:", StringComparison.Ordinal)) plan.Warnings.Add(addonNotes);
+        if (runtimeBuild?.Notes is { Length: > 0 } runtimeNotes) plan.Warnings.Add(runtimeNotes);
         bool feeder = options.Route == SetupRoute.Feeder;
         if (options.GraphicsApi == GraphicsApi.Unsupported)
             plan.Errors.Add("This graphics API is not supported. Use DirectX 10, 11 or 12 if the game offers it.");
@@ -154,7 +173,8 @@ public sealed partial class InstallerEngine(BundleCatalog catalog)
         foreach (var component in catalog.Manifest.Components.Where(c =>
             !c.PayloadPath.StartsWith("experimental/") && !c.PayloadPath.StartsWith("legacy/") &&
             !c.PayloadPath.StartsWith("dx10/") &&
-            !c.PayloadPath.StartsWith("templates/") && c.PayloadPath != "renodx-dlss.addon64"))
+            !c.PayloadPath.StartsWith("templates/") &&
+            c.TargetPath is not ("renodx-dlss.addon64" or "renodx-dlss5.addon64" or "nvngx_dlssnr.dll")))
         {
             string relative = component.TargetPath;
             if (!feeder && relative != "nvngx_dlssnr.dll" && !relative.StartsWith("reshade-shaders/")) continue;
@@ -170,8 +190,16 @@ public sealed partial class InstallerEngine(BundleCatalog catalog)
             Add(Path.GetFileName(relative), destination, "payload/" + component.PayloadPath, component.Sha256,
                 relative is "nvngx_dlss.dll" or "nvngx_dlssnr.dll", relative == "dlss5-feed.cfg");
         }
+        Add("nvngx_dlssnr.dll", FileSafety.SafePath(hostTarget?.Directory ?? target.Directory, "nvngx_dlssnr.dll"),
+            "payload/" + runtimeComponent.PayloadPath, runtimeComponent.Sha256, runtime: true);
+        var runtimeFile = plan.Files[^1];
+        plan.Files[^1] = runtimeFile with { Detail = runtimeFile.Detail + "; selected: " + plan.NeuralRuntimeLabel };
+        if (runtimeFile.Action == Operation.Keep)
+            plan.Warnings.Add("The existing neural runtime will be kept; the selected " + plan.NeuralRuntimeLabel +
+                " will not be installed. Enable ‘Replace existing add-ons’ and ‘Also replace the neural runtime’ to change it.");
         string consumerDirectory = hostTarget?.Directory ?? paths.Addons;
         Add(consumerTarget, FileSafety.SafePath(consumerDirectory, consumerTarget), consumerSource, consumerHash);
+        plan.Files[^1] = plan.Files[^1] with { Detail = plan.Files[^1].Detail + "; selected: " + plan.AddonLabel };
         if (feeder) Add(PresetName, FileSafety.SafePath(target.Directory, PresetName), "templates/" + PresetName, catalog.VerifyPreset());
         else
         {
@@ -240,7 +268,9 @@ public sealed partial class InstallerEngine(BundleCatalog catalog)
         if (changes.Length == 0) return new(0, null, plan.Files.Count(f => f.Action is Operation.Current or Operation.Keep));
         var backup = FileSafety.SafePath(plan.Target.Directory,
             "DLSS-Nexus-Backups/" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N")[..8]);
-        var receipt = new InstallReceipt { GameRoot = plan.Target.Root, Executable = plan.Target.Executable, Route = plan.Options.Route, GraphicsApi = plan.Options.GraphicsApi };
+        var receipt = new InstallReceipt { GameRoot = plan.Target.Root, Executable = plan.Target.Executable,
+            Route = plan.Options.Route, GraphicsApi = plan.Options.GraphicsApi,
+            AddonBuildId = plan.AddonBuildId, NeuralRuntimeBuildId = plan.NeuralRuntimeBuildId };
         string receiptPath = Path.Combine(backup, "installation.json");
         Dictionary<string, string> stages = new(StringComparer.OrdinalIgnoreCase);
         List<PlannedFile> applied = [];

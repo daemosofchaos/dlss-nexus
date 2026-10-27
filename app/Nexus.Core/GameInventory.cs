@@ -50,6 +50,11 @@ public sealed class GameInventory(BundleCatalog catalog)
                      filename.Equals("dxgi.dll", StringComparison.OrdinalIgnoreCase) && hostDirectories.Contains(System.IO.Path.GetDirectoryName(path)!)) && FileSafety.IsReShade(path);
                 if (!Names.TryGetValue(filename, out string? name) && !reshade) return;
                 bool valid = FileSafety.IsX64(path) && (!reshade || FileSafety.IsReShade(path));
+                if (valid && filename.StartsWith("renodx-dlss", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (FileSafety.ContainsMarker(path, "RenoDX DLSS controller")) name = "ShortFuse";
+                    else if (FileSafety.ContainsMarker(path, "NRGlobalTone\0")) name = "RenoDX Generic";
+                }
                 string hash = FileSafety.Hash(path), version = "Unknown", source = "No version information";
                 var known = catalog.Manifest.Components.FirstOrDefault(c => c.Sha256.Equals(hash, StringComparison.OrdinalIgnoreCase));
                 if (known?.Version is { Length: > 0 } matched) { version = matched; source = "Package hash match"; }

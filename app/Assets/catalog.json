@@ -1,5 +1,5 @@
 {
-  "bundleVersion": "2026-10-24",
+  "bundleVersion": "2026-10-27",
   "consumerSelections": {
     "default": {
       "payloadPath": "renodx-dlss.addon64",
@@ -134,6 +134,73 @@
       "payloadPath": "templates/DLSS-Nexus.ini",
       "targetPath": "DLSS-Nexus.ini",
       "sha256": "11B0CAA7401D234EAEF94A35AFE6E44DB77999AEFC2CE1D1B8AB8BF0B650CD00"
+    },
+    {
+      "payloadPath": "versions/nr-310.8.0/nvngx_dlssnr.dll",
+      "targetPath": "nvngx_dlssnr.dll",
+      "sha256": "E16BCF15E16E13F527491CDF7845B2FE6521A738D8F7C9C721866A8496E1FC8E",
+      "version": "310.8.0.0",
+      "signatureStatus": "Valid"
+    },
+    {
+      "payloadPath": "versions/shortfuse-20261003/renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "sha256": "F43A19C7DEBE2225AEEE68B23B804939F2222E128775080F09F18D09B83D1736",
+      "version": "0.2026.1003.2333",
+      "signatureStatus": "NotSigned"
     }
-  ]
+  ],
+  "addonBuilds": [
+    {
+      "id": "shortfuse-20261016",
+      "profile": "default",
+      "label": "ShortFuse 0.2026.1016.1704",
+      "notes": "",
+      "payloadPath": "renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "family": "Controller"
+    },
+    {
+      "id": "shortfuse-20261003",
+      "profile": "default",
+      "label": "ShortFuse 0.2026.1003.2333 (previous)",
+      "notes": "Previous ShortFuse build. Image-quality preferences are subjective; check this build with your game and settings.",
+      "payloadPath": "versions/shortfuse-20261003/renodx-dlss.addon64",
+      "targetPath": "renodx-dlss.addon64",
+      "family": "Controller"
+    },
+    {
+      "id": "generic-7.0.0-rc8-dx10",
+      "profile": "dx10",
+      "label": "RenoDX Generic v7.0.0-rc8 (DX10 helper)",
+      "notes": "",
+      "payloadPath": "dx10/renodx-dlss5.addon64",
+      "targetPath": "renodx-dlss5.addon64",
+      "family": "Generic"
+    },
+    {
+      "id": "generic-4.7",
+      "profile": "legacy",
+      "label": "RenoDX Generic v4.7 (legacy)",
+      "notes": "",
+      "payloadPath": "legacy/renodx-dlss5.addon64",
+      "targetPath": "renodx-dlss5.addon64",
+      "family": "Generic"
+    }
+  ],
+  "neuralRuntimeBuilds": [
+    {
+      "id": "nr-310.9.16-fp16",
+      "payloadPath": "nvngx_dlssnr.dll",
+      "label": "DLSS-NR 310.9.16.0 (patched FP16)",
+      "notes": "ShortFuse's patched FP16 compatibility build supports RTX 20, 30 and 40 series. Game and driver compatibility still varies."
+    },
+    {
+      "id": "nr-310.8.0",
+      "payloadPath": "versions/nr-310.8.0/nvngx_dlssnr.dll",
+      "label": "DLSS-NR 310.8.0.0 (original NVIDIA)",
+      "notes": "Original NVIDIA runtime, not the patched FP16 compatibility build. GPU and driver support may differ."
+    }
+  ],
+  "defaultNeuralRuntimeBuild": "nr-310.9.16-fp16"
 }

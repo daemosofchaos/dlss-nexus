@@ -23,7 +23,7 @@ internal static partial class Program
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/DLSS-Nexus;component/Themes/Cyberpunk.xaml") });
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-        if (args.Contains("--desktop-smoke")) return RunDesktopSmoke(output, app);
+        if (args.Contains("--desktop-smoke")) return RunDesktopSmoke(output, app, args.Contains("--desktop-versions"));
         CheckChromeGeometry();
         string game = Path.Combine(output, "fixture-game"), binary = Path.Combine(game, "Project", "Binaries", "Win64"); Directory.CreateDirectory(binary);
         File.WriteAllBytes(Path.Combine(binary, "FixtureGame-Win64-Shipping.exe"), SyntheticCatalog.Pe("game"));
@@ -240,6 +240,7 @@ internal static partial class Program
         Click(launchCompleted); Check(launches[^1].FileName == completionPlan.Target.Executable && File.ReadAllText(libraryPath) == "invalid json", "Completion launch does not repair or overwrite an unreadable library");
         CheckDx10Setup(output, catalog, archive);
         CheckReviewFeedback(output, catalog);
+        CheckVersionSelectors(output);
         File.WriteAllText(Path.Combine(output, "results.json"), JsonSerializer.Serialize(new { assertions = passed.Count, passed, embedded, scope = "Offscreen UX, isolated local inventory and fixture installation. No desktop, live games or neural evaluation." }, JsonSettings.Options));
         Console.WriteLine($"{passed.Count} Nexus UI assertions passed. {output}"); app.Shutdown(); return 0;
     }

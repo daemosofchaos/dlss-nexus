@@ -7,14 +7,33 @@ public sealed class BundleManifest
 {
     public string BundleVersion { get; set; } = "";
     public Dictionary<string, ConsumerSelection> ConsumerSelections { get; set; } = [];
+    public List<AddonBuild> AddonBuilds { get; set; } = [];
+    public List<NeuralRuntimeBuild> NeuralRuntimeBuilds { get; set; } = [];
+    public string? DefaultNeuralRuntimeBuild { get; set; }
     public List<Component> Components { get; set; } = [];
 }
 
-public sealed class ConsumerSelection
+public class ConsumerSelection
 {
     public string PayloadPath { get; set; } = "";
     public string TargetPath { get; set; } = "";
     public string Family { get; set; } = "";
+}
+
+public sealed class AddonBuild : ConsumerSelection
+{
+    public string Id { get; set; } = "";
+    public string Profile { get; set; } = "";
+    public string Label { get; set; } = "";
+    public string Notes { get; set; } = "";
+}
+
+public sealed class NeuralRuntimeBuild
+{
+    public string Id { get; set; } = "";
+    public string PayloadPath { get; set; } = "";
+    public string Label { get; set; } = "";
+    public string Notes { get; set; } = "";
 }
 
 public sealed class Component
@@ -51,13 +70,18 @@ public enum SetupRoute { Feeder, NativeDlss }
 public sealed record InstallOptions(string Profile = "default", bool ReplaceExisting = false,
     bool ReplaceNeuralRuntime = false, string? ExperimentalAddon = null,
     ReShadePackage? ReShade = null, GraphicsApi GraphicsApi = GraphicsApi.Unknown,
-    SetupRoute Route = SetupRoute.Feeder, bool NativeDlssConfirmed = false, bool DisableFeederEffects = false);
+    SetupRoute Route = SetupRoute.Feeder, bool NativeDlssConfirmed = false, bool DisableFeederEffects = false,
+    string? AddonBuild = null, string? NeuralRuntimeBuild = null);
 
 public sealed class InstallPlan
 {
     public required GameTarget Target { get; init; }
     public required InstallOptions Options { get; init; }
     public required string Family { get; init; }
+    public string? AddonBuildId { get; init; }
+    public string? NeuralRuntimeBuildId { get; init; }
+    public string AddonLabel { get; init; } = "";
+    public string NeuralRuntimeLabel { get; init; } = "";
     public List<PlannedFile> Files { get; } = [];
     public List<string> Warnings { get; } = [];
     public List<string> Errors { get; } = [];
@@ -78,6 +102,8 @@ public sealed class InstallReceipt
     public string Executable { get; set; } = "";
     public SetupRoute Route { get; set; }
     public GraphicsApi GraphicsApi { get; set; }
+    public string? AddonBuildId { get; set; }
+    public string? NeuralRuntimeBuildId { get; set; }
     public DateTimeOffset Created { get; set; } = DateTimeOffset.UtcNow;
     public List<BackupEntry> Files { get; set; } = [];
 }

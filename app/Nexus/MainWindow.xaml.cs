@@ -30,12 +30,15 @@ public partial class MainWindow : Window
         Func<CancellationToken, GameLibraryResult>? discoverGames = null, GameLibraryStore? gameLibraryStore = null,
         Action<ProcessStartInfo>? launchGame = null)
     {
-        engine = new(catalog); inventory = new(catalog);
+        engine = new(catalog); inventory = new(catalog); versionCatalog = catalog;
         reshade = reShadeService ?? new ReShadeService();
         libraryStore = gameLibraryStore ?? new GameLibraryStore();
         libraryDiscovery = discoverGames ?? InstalledGames.Discover;
         startGameProcess = launchGame ?? (start => { using var process = Process.Start(start); });
-        InitializeComponent(); initialized = true;
+        InitializeComponent(); initialized = true; RefreshVersionChoices(reset: true);
+        string version = typeof(MainWindow).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .Cast<System.Reflection.AssemblyInformationalVersionAttribute>().Single().InformationalVersion.Split('+')[0];
+        AppVersionText.Text = version + " / WINDOWS x64";
         SetGameMode(false); SetWizardStep(WizardStep.Game, animate: false);
     }
     private string Profile => (ProfileBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "default";
@@ -45,7 +48,8 @@ public partial class MainWindow : Window
         ? api : (TargetsList.SelectedItem as GameTarget)?.DetectedApi ?? GraphicsApi.Unknown;
     private InstallOptions Options => new(Profile: Profile, ReplaceExisting: ReplaceBox.IsChecked == true,
         ReplaceNeuralRuntime: ReplaceNrBox.IsChecked == true, ExperimentalAddon: experimentalAddon, GraphicsApi: SelectedApi,
-        Route: SelectedRoute, NativeDlssConfirmed: SelectedRoute == SetupRoute.NativeDlss, DisableFeederEffects: disableFeederEffects);
+        Route: SelectedRoute, NativeDlssConfirmed: SelectedRoute == SetupRoute.NativeDlss, DisableFeederEffects: disableFeederEffects,
+        AddonBuild: SelectedAddonBuild, NeuralRuntimeBuild: SelectedNeuralRuntimeBuild);
     private GameListItem? SelectedLibraryGame => InstalledGamesList.SelectedItem as GameListItem;
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -164,6 +168,8 @@ public partial class MainWindow : Window
             if (currentGame?.GraphicsApi is { } savedApi && savedApi != GraphicsApi.Unknown)
                 ApiBox.SelectedItem = ApiBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => i.Tag?.ToString() == savedApi.ToString()) ?? ApiBox.Items[0];
             RouteBox.SelectedIndex = currentGame?.Route == SetupRoute.NativeDlss ? 1 : currentGame?.Route == SetupRoute.Feeder ? 2 : 0;
+            RefreshVersionChoices(reset: true);
+            if (currentGame?.Snapshot is { } snapshot) RestoreInstalledVersionChoices(target, snapshot);
             ShowInventory(currentGame, SelectedLibraryGame?.Name ?? target.DisplayName);
         }
         else currentGame = null;
@@ -176,6 +182,7 @@ public partial class MainWindow : Window
         ReplaceBox.IsChecked = ReplaceNrBox.IsChecked = false;
         ReplaceNrBox.IsEnabled = false; experimentalAddon = null; CustomAddonButton.IsEnabled = false;
         CustomAddonText.Text = "No custom add-on selected."; backupDirectory = null; OpenBackupButton.IsEnabled = false;
+        RefreshVersionChoices(reset: true);
     }
     private void OptionsChanged(object sender, RoutedEventArgs e)
     {
@@ -188,6 +195,7 @@ public partial class MainWindow : Window
     private void UpdateSetupHints()
     {
         if (!initialized) return;
+        RefreshVersionChoices();
         bool keepRuntime = false;
         var runtimeTarget = TargetsList.SelectedItem as GameTarget;
         var runtimeOptions = Options;
@@ -206,6 +214,7 @@ public partial class MainWindow : Window
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException) { }
         }
         RuntimeKeptText.Visibility = keepRuntime ? Visibility.Visible : Visibility.Collapsed;
+        RuntimeKeptText.Text = "Your existing neural runtime will be kept unless you enable replacement. Choosing a different version alone does not replace it.";
         ApiRequiredText.Visibility = HasTarget && SelectedApi == GraphicsApi.Unknown ? Visibility.Visible : Visibility.Collapsed;
         Dx10SetupText.Visibility = HasTarget && SelectedApi == GraphicsApi.Direct3D10 ? Visibility.Visible : Visibility.Collapsed;
         bool helper = InstallerEngine.UsesDx10Helper(Options);
@@ -246,6 +255,8 @@ public partial class MainWindow : Window
         busy = value; StatusText.Text = status; BusyBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         GamePathBox.IsEnabled = BrowseFolderButton.IsEnabled = BrowseExeButton.IsEnabled = ScanButton.IsEnabled = !value;
         OptionsPanel.IsEnabled = TargetsList.IsEnabled = InstalledGamesList.IsEnabled = GameFilterBox.IsEnabled = !value;
+        AddonVersionBox.IsEnabled = !value && AddonVersionBox.Items.Count > 1;
+        NeuralRuntimeVersionBox.IsEnabled = !value && NeuralRuntimeVersionBox.Items.Count > 1;
         LibraryModeButton.IsEnabled = ManagedModeButton.IsEnabled = ManualModeButton.IsEnabled = !value;
         RefreshGamesButton.IsEnabled = !value && !libraryBusy; CheckReShadeButton.IsEnabled = !value && !updateBusy;
         FeatureReportExpander.IsEnabled = !value && currentGame?.Snapshot?.Complete == true && LibraryErrorText.Text.Length == 0;
@@ -265,13 +276,13 @@ public partial class MainWindow : Window
             if (preferred != null) TargetsList.SelectedItem = preferred;
             else if (result.Targets.Count == 1) TargetsList.SelectedIndex = 0;
             DiscoveryText.Text = result.Targets.Count > 1 ? "Choose the executable you play." : string.Join(" ", result.Notices);
-            if (TargetsList.SelectedItem is GameTarget target) await InspectTargetAsync(target);
+            if (TargetsList.SelectedItem is GameTarget target) await InspectTargetAsync(target, restoreVersions: true);
             SetBusy(false, HasTarget ? "Game selected" : result.Targets.Count == 0 ? "No supported game found" : "Choose an executable");
         }
         catch (Exception ex) { ShowError(ex); SetBusy(false, "Could not read the game"); }
         finally { cancellation.Dispose(); cancellation = null; }
     }
-    private async Task InspectTargetAsync(GameTarget target, SetupRoute? route = null, bool installed = false, GraphicsApi? graphicsApi = null)
+    private async Task InspectTargetAsync(GameTarget target, SetupRoute? route = null, bool installed = false, GraphicsApi? graphicsApi = null, bool restoreVersions = false)
     {
         string name = SelectedLibraryGame?.Name ?? trackedGames.FirstOrDefault(g => g.Executable.Equals(target.Executable, StringComparison.OrdinalIgnoreCase))?.Name ?? target.DisplayName;
         string source = SelectedLibraryGame?.Source ?? "Manual";
@@ -288,6 +299,7 @@ public partial class MainWindow : Window
             LogBox.AppendText("Library: " + ex.Message + Environment.NewLine);
             LibraryErrorText.Text = "Could not save the game library. Check the Activity log for details.";
         }
+        if (restoreVersions) RestoreInstalledVersionChoices(target, snapshot);
         ShowInventory(currentGame, name);
     }
     private void ShowInventory(TrackedGame? game, string? name)
@@ -363,6 +375,10 @@ public partial class MainWindow : Window
             _ => name.StartsWith("ReShade") ? "ReShade" : name.EndsWith(".fx") || name.EndsWith(".fxh") || name.EndsWith(".png") ? "Shader support" : "Preset and settings"
         };
         List<string> summary = [review.Options.Route == SetupRoute.NativeDlss ? "Setup: Native DLSS" : review.UsesDx10Helper ? "Setup: DirectX 10 Feeder helper (beta)" : "Setup: Feeder"];
+        summary.Add("Add-on selected: " + review.AddonLabel);
+        summary.Add("DLSS-NR selected: " + review.NeuralRuntimeLabel);
+        if (review.Files.Any(f => f.Component == "nvngx_dlssnr.dll" && f.Action == Operation.Keep))
+            summary.Add("DLSS-NR: Keep the existing runtime; the selected version will not be installed");
         foreach (var group in new[] { ("Install", Operation.Install), ("Replace", Operation.Replace), ("Keep", Operation.Keep), ("Back up and remove", Operation.Retire) })
         {
             var labels = review.Files.Where(f => f.Action == group.Item2 || group.Item2 == Operation.Keep && f.Action == Operation.Current).Select(f => Label(f.Component)).Distinct().ToArray();
@@ -400,7 +416,9 @@ public partial class MainWindow : Window
         OpenBackupButton.IsEnabled = backupDirectory != null; completionDirectory = completedPlan.Target.Directory;
         string name = SelectedLibraryGame?.Name ?? completedPlan.Target.DisplayName;
         CompletionTitle.Text = result.FilesChanged == 0 ? "Verified" : "Installed";
-        CompletionDetails.Text = $"{name}\n{result.FilesVerified} files verified";
+        CompletionDetails.Text = $"{name}\n{result.FilesVerified} files verified\nAdd-on: {completedPlan.AddonLabel}\nDLSS-NR: " +
+            (completedPlan.Files.Any(f => f.Component == "nvngx_dlssnr.dll" && f.Action == Operation.Keep)
+                ? "Existing runtime kept (selected alternative not installed)" : completedPlan.NeuralRuntimeLabel);
         CompletionWarningText.Text = string.Join("\n", new[] { LibraryErrorText.Text,
             completedPlan.UsesDx10Helper ? "DirectX 10 Feeder is a beta route. Verify neural activity in the helper; installed files do not confirm gameplay compatibility." : "" }.Where(t => t.Length != 0));
         CompletionStepsText.Text = completedPlan.Options.Route == SetupRoute.NativeDlss

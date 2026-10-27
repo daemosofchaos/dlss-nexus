@@ -42,6 +42,17 @@ Legacy v4.7 remains available but has known failures with newer NVIDIA drivers. 
 
 ### Review and install
 
+#### Choose an add-on and DLSS-NR version
+
+In Nexus **1.1.0**, **Advanced** has separate **Add-on version** and **DLSS-NR version** lists. You can mix the current and previous ShortFuse builds with either bundled runtime. New setups default to the current builds; reopening setup restores recognized installed choices, rather than silently choosing an upgrade. Updating the Nexus application does not automatically change game components.
+
+1. Choose the builds you want. Standard DX10 uses Generic, not ShortFuse; Custom uses your selected custom add-on.
+2. To change an existing add-on, enable **Replace existing add-ons**.
+3. To change an existing DLSS-NR DLL, also enable **Also replace the neural runtime**. Without both options, the existing DLL is kept even if you select a different version.
+4. In Review, check the exact version labels and **Install / Replace / Keep** actions. Replaced files are backed up, including when selecting an older version.
+
+DLSS-NR 310.8.0.0 is the original signed NVIDIA DLL, not the newer patched FP16 compatibility build. Its GPU/driver support may differ. Some users prefer an older build's image quality; that is a subjective preference, not a verified improvement. Existing Super Resolution runtimes, settings and presets are kept under the normal safety rules.
+
 ReShade is downloaded when missing; the first download needs internet access.
 
 Nexus installs the bundled effects and includes into **reshade-shaders/Shaders**, textures into **reshade-shaders/Textures**, and **DLSS-Nexus.ini** beside the game executable. Existing custom local shader and texture folders are honored. The new native-DLSS preset starts with effects disabled; the Feeder preset enables the matched Lumenite Kernel and DLSS5 Feed effects.

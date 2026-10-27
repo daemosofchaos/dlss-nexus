@@ -17,7 +17,7 @@ Nexus does not install Super Resolution, Ray Reconstruction or Frame Generation 
 
 ## Package components
 
-DLSS Nexus **1.0.0** includes the following injection components:
+DLSS Nexus **1.1.0** includes the following injection components:
 
 | Component | Version | Date |
 |---|---|---|
@@ -26,11 +26,15 @@ DLSS Nexus **1.0.0** includes the following injection components:
 | DX10 `dlss5-feed-helper.addon64` | 1.19.0 | 11 October 2026 |
 | DX10 `host64/dlss5-feed-host64.exe` | 1.19.0 | 11 October 2026 |
 | Standard ShortFuse `renodx-dlss.addon64` | `0.2026.1016.1704` | 16 October 2026 |
+| Previous ShortFuse `versions/shortfuse-20261003/renodx-dlss.addon64` | `0.2026.1003.2333` | — |
 | Custom ShortFuse `renodx-dlss.addon64` | `0.2026.1016.1704` | 16 October 2026 |
 | Default DX10 Generic `renodx-dlss5.addon64` | v7.0.0-rc8 (`0.2026.0923.0307`) | [23 September 2026](https://github.com/RankFTW/rhi-repo/releases/tag/renodx-dlss5-7.0.0-rc8) |
 | Legacy Generic `renodx-dlss5.addon64` | v4.7 (`0.2026.0828.0517`) | [1 September 2026](https://github.com/RankFTW/rhi-repo/releases/tag/renodx-dlss5-4.70) |
 | Super Resolution `nvngx_dlss.dll` | `310.8.0.0` · NVIDIA-signed | [27 August 2026](https://github.com/RankFTW/rhi-repo/releases/tag/dlss-310.8.0) |
 | Neural Rendering `nvngx_dlssnr.dll` — ShortFuse compatibility build | `310.9.16.0` · patched FP16 · **unsigned** | 16 October 2026 |
+| Original NVIDIA Neural Rendering `versions/nr-310.8.0/nvngx_dlssnr.dll` | `310.8.0.0` · NVIDIA-signed | — |
+
+The previous add-on is a ShortFuse/Controller build, despite its supplied filename `renodx-dlss5.addon64`. Nexus installs it under the canonical ShortFuse name `renodx-dlss.addon64`; it is not the Generic DX10 add-on. No upstream release date is asserted for these two supplied alternatives.
 
 ### RTX 20, 30 and 40 series support
 
@@ -39,6 +43,14 @@ Nexus includes **ShortFuse's patched FP16 DLSS Neural Rendering runtime** for **
 **Build:** `compat-fp16-310.9.16-cuda13.4.3`.
 
 To use the included compatibility DLL in a game that already has a neural runtime, open **Advanced**, enable **Replace existing add-ons** and **Also replace the neural runtime**, then review the changes. Nexus backs up the replaced files.
+
+**DLSS-NR 310.8.0.0 is the original signed NVIDIA build, not this patched FP16 build.** Do not assume the same RTX 20/30/40 compatibility. GPU and driver requirements can differ. Image-quality preferences between builds are subjective and are not measured by Nexus.
+
+### Selecting versions safely
+
+Under **Advanced**, select **Add-on version** and **DLSS-NR version** independently. New setups default to the current builds; reopening a setup restores uniquely recognized installed versions by their exact hashes. Standard DX10 offers only compatible Generic choices; Custom uses your custom add-on instead of a bundled add-on choice.
+
+Only the selected add-on and runtime are planned, never every bundled alternative. Version selection itself is not replacement consent. A different existing add-on requires **Replace existing add-ons**. Changing an existing neural runtime requires that option and **Also replace the neural runtime**. Otherwise Review explicitly shows **Keep** and says the selected runtime alternative will not be installed. Downgrades use the same backups, stale-review checks and guarded rollback as upgrades.
 
 ### Supporting shaders and configuration
 
@@ -63,10 +75,12 @@ C069AA9D8B01FCEE34234BC458A798C3BE6F27FC8B9F23B74B5FB1784A828886  dx10/dlss5-fee
 79E427430C5C0102F6C7A557155B706AD51B0C40933F6E245FCE922BF5B1401E  dx10/host64/dlss5-feed-host64.exe
 A8FD34B531FD22C3DBD008ED8FD3CBFCCA2FB451729E19CD1FC2E4C85B5068D4  renodx-dlss.addon64
 A8FD34B531FD22C3DBD008ED8FD3CBFCCA2FB451729E19CD1FC2E4C85B5068D4  experimental/renodx-dlss.addon64
+F43A19C7DEBE2225AEEE68B23B804939F2222E128775080F09F18D09B83D1736  versions/shortfuse-20261003/renodx-dlss.addon64
 FF8B9738738265E09F01A1C470A0CB0A59EB021B2B23797C3DF7CEA722A724B6  dx10/renodx-dlss5.addon64
 D5ADF82EB44B065F4C590AC91FE824BAB07AFEA0EB9F994BDE936710C8593952  legacy/renodx-dlss5.addon64
 C85F971CE023C9F3492FC7455F0B01A24BA18EA39636407A846902C4360B0B7E  nvngx_dlss.dll
 CDFA6C1EC784867182164C7836F324F087B5C9F374D0C9FE46F54999FEABF3ED  nvngx_dlssnr.dll
+E16BCF15E16E13F527491CDF7845B2FE6521A738D8F7C9C721866A8496E1FC8E  versions/nr-310.8.0/nvngx_dlssnr.dll
 C4BA1610DF8E1593FAA7C203D6D0517058D3A8ECF2DFDA18CA67849844391456  reshade-shaders/Shaders/DLSS5_Feed.fx
 463D2BADA33FD3058383BC0273ABA74DF9D5F1DB75FE13D8F305A22BF94526E3  reshade-shaders/Shaders/lumenite_Kernel.fx
 ```
@@ -81,7 +95,7 @@ Nexus carries these files inside the application and installs the selected compo
 - **Custom — testing:** includes the same ShortFuse build as Standard and lets you select a different add-on. Choose a compatible Generic build for DX10.
 - **ReShade:** Nexus keeps existing ReShade or downloads the official full add-on version when needed. Review and Check status show the installed version.
 
-The app and bundled neural runtime are unsigned. Do not disable security protections to bypass a Windows warning.
+The app and default patched neural runtime are unsigned. The original NVIDIA 310.8.0.0 alternative has a valid NVIDIA signature. A valid signature is not a gameplay or GPU-compatibility guarantee. Do not disable security protections to bypass a Windows warning.
 
 ## Existing files
 

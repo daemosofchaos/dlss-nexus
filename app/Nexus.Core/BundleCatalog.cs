@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Nexus.Core;
 
-public sealed class BundleCatalog
+public sealed partial class BundleCatalog
 {
     private readonly Func<string, Stream> open;
     public BundleManifest Manifest { get; }
@@ -39,8 +39,21 @@ public sealed class BundleCatalog
     }
     public int VerifyAll()
     {
+        ValidateVersionCatalog();
         foreach (var c in Manifest.Components)
             Verify(c.PayloadPath.StartsWith("templates/") ? c.PayloadPath : "payload/" + c.PayloadPath, c.Sha256);
+        foreach (var build in Manifest.AddonBuilds)
+        {
+            using var stream = OpenSource("payload/" + build.PayloadPath);
+            if (FileSafety.AddonFamily(stream) != build.Family)
+                throw new InvalidOperationException($"The package add-on family is incorrect: {build.Id}.");
+        }
+        foreach (var build in Manifest.NeuralRuntimeBuilds)
+        {
+            using var stream = OpenSource("payload/" + build.PayloadPath);
+            if (!FileSafety.IsX64(stream))
+                throw new InvalidOperationException($"The package neural runtime is not 64-bit: {build.Id}.");
+        }
         return Manifest.Components.Count;
     }
 }

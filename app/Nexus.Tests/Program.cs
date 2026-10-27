@@ -249,6 +249,7 @@ sealed class Suite(string root, string? officialSetup)
         NativeMigrationTests.Run(root, catalog, engine, Check);
         InventoryTests.Run(root, catalog, engine, Check);
         Dx10Tests.Run(root, catalog, engine, Check);
+        VersionSelectionTests.Run(root, catalog, Check);
         File.WriteAllText(Path.Combine(root, "results.json"), JsonSerializer.Serialize(new { assertions, results, fixtures = root, officialReShadeIntegration = officialSetup != null, scope = "Synthetic isolated files; no real games or GPU rendering tested" }, JsonSettings.Options));
         Console.WriteLine($"\n{assertions} native C# assertions passed. Fixtures: {root}");
     }

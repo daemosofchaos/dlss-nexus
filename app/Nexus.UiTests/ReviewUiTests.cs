@@ -72,12 +72,29 @@ internal static partial class Program
         Check(window.FindName("DisableFeederButton") is Button { Visibility: Visibility.Collapsed }, "Returning to games clears migration consent and feedback");
         window.Close();
     }
-    private static int RunDesktopSmoke(string output, Application app)
+    private static string CreateDesktopVersionFixture(string output, BundleCatalog catalog)
+    {
+        string directory = Path.Combine(output, "version-choice-game", "Project", "Binaries", "Win64");
+        Directory.CreateDirectory(directory);
+        File.WriteAllBytes(Path.Combine(directory, "Game-Win64-Shipping.exe"), SyntheticCatalog.Pe("inert version-choice game"));
+        File.WriteAllBytes(Path.Combine(directory, "dxgi.dll"), SyntheticCatalog.Pe("ReShade version-choice fixture"));
+        File.WriteAllText(Path.Combine(directory, "ReShade.ini"), "[GENERAL]\r\nAddonPath=.\\\r\nEffectSearchPaths=.\\reshade-shaders\\Shaders\\**\r\nTextureSearchPaths=.\\reshade-shaders\\Textures\\**\r\nPresetPath=.\\Existing-Custom.ini\r\nPerformanceMode=0\r\n", new UTF8Encoding(false));
+        File.WriteAllText(Path.Combine(directory, "Existing-Custom.ini"), "Techniques=CustomEffect@Custom.fx\r\n[Custom.fx]\r\nStrength=0.75\r\n", new UTF8Encoding(true));
+        foreach (string name in new[] { "renodx-dlss.addon64", "nvngx_dlssnr.dll", "nvngx_dlss.dll" })
+        {
+            using var input = catalog.OpenSource("payload/" + name); using var file = File.Create(Path.Combine(directory, name)); input.CopyTo(file);
+        }
+        File.WriteAllText(Path.Combine(output, "desktop-fixture-before.json"), System.Text.Json.JsonSerializer.Serialize(Snapshot(directory), new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        return directory;
+    }
+    private static int RunDesktopSmoke(string output, Application app, bool versionChoices = false)
     {
         var catalog = BundleCatalog.FromEmbedded(typeof(MainWindow).Assembly);
-        string directory = CreateMigrationFixture(output, catalog), game = Path.GetFullPath(Path.Combine(directory, "../../.."));
+        catalog.VerifyAll();
+        string directory = versionChoices ? CreateDesktopVersionFixture(output, catalog) : CreateMigrationFixture(output, catalog);
+        string game = Path.GetFullPath(Path.Combine(directory, "../../.."));
         var window = new MainWindow(catalog, new ReShadeService(Path.Combine(output, "desktop-cache"), new HttpClient(new FixtureDownloads(null))),
-            _ => new GameLibraryResult([new("Native migration fixture", game, "Synthetic", Path.Combine(directory, "Game-Win64-Shipping.exe"))], []),
+            _ => new GameLibraryResult([new(versionChoices ? "Version selection fixture" : "Native migration fixture", game, "Synthetic", Path.Combine(directory, "Game-Win64-Shipping.exe"))], []),
             new GameLibraryStore(Path.Combine(output, "desktop-state", "library.json")), _ => throw new InvalidOperationException("Game launches are disabled in this fixture."));
         window.Title = "DLSS Nexus — isolated desktop test";
         DesktopMetrics.Attach(window, output);

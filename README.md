@@ -12,6 +12,7 @@ Instead of manually matching add-ons, copying runtimes and managing presets for 
 
 - **Set up DLSS 5 injection** for suitable DirectX 11 and DirectX 12 games, with a beta Feeder route for 64-bit DirectX 10 games.
 - **Choose native DLSS or Feeder**, depending on whether the game already includes DLSS.
+- **Choose add-on and DLSS-NR versions independently** under Advanced, including the previous ShortFuse build and original NVIDIA DLSS-NR 310.8.0.0.
 - **Review changes before installing**, including which files will be installed, replaced or kept. Replaced files are backed up for recovery.
 - **Track your game library**, with installed DLSS, ReShade and add-on versions alongside your in-game feature settings.
 - **Launch games directly** from the library or the Ready screen after installation.
@@ -34,20 +35,24 @@ This is not a universal upgrade for every game. Compatibility depends on the gam
 
 ## Included injection payloads
 
-DLSS Nexus **1.0.0** includes the following components:
+DLSS Nexus **1.1.0** includes the following components:
 
 | Component | Version | Date | Used for |
 |---|---|---|---|
 | DLSS5 Feeder and matched `DLSS5_Feed.fx` | 1.19.0 | [11 October 2026](https://github.com/jlrouzies-fr/DLSS5-Feeder/releases/tag/v1.19.0) | Feeder setup |
 | Feeder DX10 helper and `host64` executable | 1.19.0 | 11 October 2026 | DX10 Feeder setup |
 | ShortFuse `renodx-dlss.addon64` | `0.2026.1016.1704` | 16 October 2026 | Standard DX11/DX12, including native DLSS |
+| Previous ShortFuse `renodx-dlss.addon64` | `0.2026.1003.2333` | — | Selectable Standard DX11/DX12 alternative |
 | RenoDX Generic `renodx-dlss5.addon64` | v7.0.0-rc8 | [23 September 2026](https://github.com/RankFTW/rhi-repo/releases/tag/renodx-dlss5-7.0.0-rc8) | Standard DX10 helper |
 | Legacy RenoDX Generic `renodx-dlss5.addon64` | v4.7 | [1 September 2026](https://github.com/RankFTW/rhi-repo/releases/tag/renodx-dlss5-4.70) | Optional Legacy profile |
 | DLSS Super Resolution `nvngx_dlss.dll` | `310.8.0.0` · NVIDIA-signed | [27 August 2026](https://github.com/RankFTW/rhi-repo/releases/tag/dlss-310.8.0) | Feeder setup; existing game runtime kept |
 | DLSS Neural Rendering `nvngx_dlssnr.dll` — ShortFuse compatibility build | `310.9.16.0` · patched FP16 · **unsigned** | 16 October 2026 | Neural Rendering support for RTX 20/30/40 series |
+| Original NVIDIA DLSS Neural Rendering `nvngx_dlssnr.dll` | `310.8.0.0` · NVIDIA-signed | — | Selectable alternative; not the patched FP16 compatibility build |
 | LumeniteFX `lumenite_Kernel.fx` | `2026.07.28` | 28 July 2026 | Feeder motion-vector preset |
 
 **Custom — testing** includes the same ShortFuse build as Standard and lets you select a different add-on. **ReShade is downloaded when needed.** Review and Check status show the component versions installed for each game.
+
+New setups keep the current builds as defaults. A recognized installed choice is restored when reopening setup. Choosing a different version does not authorize replacement: existing neural runtimes are kept unless both replacement options are enabled. Image-quality preferences are subjective; Nexus does not verify that an older build looks better. GPU/driver support may differ with the original NVIDIA runtime.
 
 See **[included files and checksums](docs/SAFETY.md#package-components)** for the full component list and setup details.
 
@@ -56,6 +61,8 @@ See **[included files and checksums](docs/SAFETY.md#package-components)** for th
 **[Download the Windows installer or portable ZIP →](https://github.com/daemosofchaos/dlss-nexus/releases/latest)**
 
 Both include the .NET runtime—no separate .NET installation is needed.
+
+**[What's new in 1.1.0 →](docs/releases/1.1.0.md)** — independent add-on and DLSS-NR version choices. Updating Nexus does not automatically replace files in your games.
 
 1. Close the game and open **DLSS Nexus**.
 2. Select it in **All games**, or use **Add game…** to choose its folder or executable.
@@ -66,7 +73,7 @@ Both include the .NET runtime—no separate .NET installation is needed.
 
 **RTX 20, 30 and 40 series support:** Nexus includes ShortFuse's patched FP16 DLSS Neural Rendering runtime, providing Neural Rendering compatibility for these GeForce RTX generations.
 
-> **Use only with suitable single-player games, never with anti-cheat.** The app and bundled neural runtime are unsigned.
+> **Use only with suitable single-player games, never with anti-cheat.** The app and default patched neural runtime are unsigned; the original NVIDIA 310.8.0.0 alternative is signed.
 
 ## Your game library
 

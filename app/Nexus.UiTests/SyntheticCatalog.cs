@@ -6,7 +6,7 @@ using Nexus.Core;
 internal static class SyntheticCatalog
 {
     // Deliberately inert fixture bytes. Public source tests do not need or redistribute deployment payloads.
-    public static BundleCatalog Create()
+    public static BundleCatalog Create(bool versionChoices = false)
     {
         var manifest = new BundleManifest { BundleVersion = "fixture", ConsumerSelections = new()
         {
@@ -31,10 +31,28 @@ internal static class SyntheticCatalog
             ["payload/reshade-shaders/Textures/lumenite_bluenoise256.png"] = [1, 2, 3],
             ["templates/" + InstallerEngine.PresetName] = Encoding.UTF8.GetBytes("Techniques=\n")
         };
+        if (versionChoices)
+        {
+            assets["payload/versions/shortfuse-20261003/renodx-dlss.addon64"] = Pe("RenoDX DLSS controller previous fixture");
+            assets["payload/versions/nr-310.8.0/nvngx_dlssnr.dll"] = Pe("previous original NR fixture");
+            manifest.AddonBuilds = [
+                new() { Id = "shortfuse-20261016", Profile = "default", Label = "ShortFuse 0.2026.1016.1704", PayloadPath = "renodx-dlss.addon64", TargetPath = "renodx-dlss.addon64", Family = "Controller" },
+                new() { Id = "shortfuse-20261003", Profile = "default", Label = "ShortFuse 0.2026.1003.2333 (previous)", Notes = "Previous synthetic build; image-quality preferences are subjective.", PayloadPath = "versions/shortfuse-20261003/renodx-dlss.addon64", TargetPath = "renodx-dlss.addon64", Family = "Controller" },
+                new() { Id = "generic-7.0.0-rc8-dx10", Profile = "dx10", Label = "DX10 Generic v7.0.0-rc8", PayloadPath = "dx10/renodx-dlss5.addon64", TargetPath = "renodx-dlss5.addon64", Family = "Generic" },
+                new() { Id = "generic-4.7", Profile = "legacy", Label = "Legacy Generic v4.7", PayloadPath = "legacy/renodx-dlss5.addon64", TargetPath = "renodx-dlss5.addon64", Family = "Generic" }
+            ];
+            manifest.NeuralRuntimeBuilds = [
+                new() { Id = "nr-310.9.16-fp16", Label = "DLSS-NR 310.9.16.0 (patched FP16)", PayloadPath = "nvngx_dlssnr.dll" },
+                new() { Id = "nr-310.8.0", Label = "DLSS-NR 310.8.0.0 (original NVIDIA)", Notes = "Original NVIDIA runtime, not the patched FP16 build. GPU/driver support may differ.", PayloadPath = "versions/nr-310.8.0/nvngx_dlssnr.dll" }
+            ];
+            manifest.DefaultNeuralRuntimeBuild = "nr-310.9.16-fp16";
+        }
         foreach (var asset in assets)
         {
             string path = asset.Key.StartsWith("payload/") ? asset.Key[8..] : asset.Key;
-            manifest.Components.Add(new() { PayloadPath = path, TargetPath = path.StartsWith("templates/") ? InstallerEngine.PresetName : path,
+            string target = manifest.AddonBuilds.FirstOrDefault(b => b.PayloadPath == path)?.TargetPath ??
+                (manifest.NeuralRuntimeBuilds.Any(b => b.PayloadPath == path) ? "nvngx_dlssnr.dll" : path.StartsWith("templates/") ? InstallerEngine.PresetName : path);
+            manifest.Components.Add(new() { PayloadPath = path, TargetPath = target,
                 Sha256 = Convert.ToHexString(SHA256.HashData(asset.Value)) });
         }
         return new(manifest, key => new MemoryStream(assets[key], false));

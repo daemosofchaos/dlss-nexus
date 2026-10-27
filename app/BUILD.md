@@ -41,6 +41,8 @@ dotnet run --project app/Nexus.UiTests/Nexus.UiTests.csproj -c Release -- app/Te
 
 It opens an isolated **Native migration fixture**, with its own game files, library and cache. Game launches are disabled. Use it to check maximized/restored Games, Setup, blocked/resolved Review and Ready, including footer reachability above the taskbar. Actual monitor bounds, work area, window DPI and footer-button bounds are saved in `desktop-metrics.jsonl`. The offscreen 125% render is a layout check, not a physical high-DPI desktop test.
 
+Add `--desktop-versions` alongside `--desktop-smoke` for a separate **Version selection fixture** with current add-on/runtime files and an unrelated active preset. Choose older versions through the normal Setup UI, check the runtime Keep explanation without its replacement consent, then explicitly allow replacement and test Cancel/Install/Ready. Its original file hashes are saved in `desktop-fixture-before.json`. Use only that isolated harness and fixture; do not launch the inert game executable or modify real games. Neither desktop option is an unattended game-installation command.
+
 ## Optional full local tests
 
 For real archive-extraction/cache cases, supply a locally downloaded official **full add-on** ReShade setup as the second harness argument. The current integration fixture uses 6.8.0. Mock HTTP serves these archive bytes; tests do not make live requests or install into real games.
@@ -55,6 +57,16 @@ dotnet run --project app/Nexus.UiTests/Nexus.UiTests.csproj -c Release -- app/Te
 Without an archive, those integration cases are explicitly skipped. Without local deployment assets, do not use `--embedded`.
 
 ## Local production package
+
+### Catalog-driven version alternatives
+
+`Assets/catalog.json` contains `AddonBuilds` and `NeuralRuntimeBuilds`. Each build has a stable simple `Id`, a display `Label`, optional `Notes`, and an exact component `PayloadPath`. Add-ons also declare their `Profile`, `Family` and canonical `TargetPath`. Defaults for add-ons come from the existing profile's `ConsumerSelections` mapping; `DefaultNeuralRuntimeBuild` selects the default runtime ID. Existing calls with no explicit IDs still use those defaults.
+
+To add a future build, add its authorized original bytes under a distinct ignored `payload/versions/` path, add the hash/version/signature component metadata, and add a build descriptor. No installer or UI branch is needed. Controller add-ons target `renodx-dlss.addon64`; Generic add-ons target `renodx-dlss5.addon64`. Runtime alternatives target only `nvngx_dlssnr.dll`. Catalog validation rejects duplicate/unknown IDs, missing defaults, unsafe paths and incompatible family/target mappings. Package verification hashes every alternative and checks its 64-bit identity; game setup selects only one add-on and one runtime.
+
+Version regression fixtures cover the old/new cross-product on native and Feeder routes, independent runtime preservation, downgrade/upgrade backups, wrong-profile/custom/DX10 choices, stale reviews, corruption and transactional rollback. UI cases cover default selection, review invalidation and consent reset, exact labels, recognized installed-choice restoration, honest Keep completion and a third catalog-only build. Supplied DLLs/add-ons are inspected, copied and hashed, not executed by tests.
+
+Version selection is included in **1.1.0**. Preserve earlier release outputs, tags and history when packaging a new version. Publishing is a separate, explicitly authorized operation; neither the build script nor CI publishes automatically.
 
 Place only authorized payloads under the ignored root `payload/` folder, matching every exact SHA-256 value in `app/Assets/catalog.json`. The checked-in preset under `templates/` is verified too. Keep binary and shader releases matched; do not promote experiments implicitly.
 

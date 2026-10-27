@@ -20,9 +20,13 @@ The DX10 helper add-on and host executable come from the same official Feeder 1.
 
 NVIDIA DLSS trademarks and runtime components belong to their respective owners and remain subject to the applicable NVIDIA terms.
 
-The bundled `nvngx_dlssnr.dll` is **ShortFuse's patched FP16 DLSS-NR 310.9.16 compatibility build** for **GeForce RTX 20, RTX 30 and RTX 40 series GPUs**, released on **16 October 2026** under the tag `compat-fp16-310.9.16-cuda13.4.3`. ShortFuse edited and provided this runtime to add compatibility for those card generations. It is a modified, unsigned build of the NVIDIA runtime.
+The default bundled `nvngx_dlssnr.dll` is **ShortFuse's patched FP16 DLSS-NR 310.9.16 compatibility build** for **GeForce RTX 20, RTX 30 and RTX 40 series GPUs**, released on **16 October 2026** under the tag `compat-fp16-310.9.16-cuda13.4.3`. ShortFuse edited and provided this runtime to add compatibility for those card generations. It is a modified, unsigned build of the NVIDIA runtime.
+
+The selectable **DLSS-NR 310.8.0.0** alternative is an unmodified, NVIDIA-signed runtime. Its original bytes are retained under `versions/nr-310.8.0/`; it is not ShortFuse's patched FP16 build and the same GPU compatibility must not be assumed.
 
 The Standard `renodx-dlss.addon64` is supplied by **ShortFuse (clshortfuse)** through [RenoDX](https://github.com/clshortfuse/renodx), with credit to the RenoDX contributors for the underlying framework. The legacy Generic `renodx-dlss5.addon64` build is credited to **Krish** and the [RenoDX community](https://discord.gg/F6AUTeWJHM).
+
+The previous **ShortFuse 0.2026.1003.2333** alternative retains its original bytes under `versions/shortfuse-20261003/`. Although supplied as `renodx-dlss5.addon64`, its internal identity is ShortFuse/Controller, not Generic; Nexus deploys it as `renodx-dlss.addon64`. It retains the same creator attribution and applicable distribution terms. Both selectable alternatives are included starting with Nexus 1.1.0.
 
 DX10's default Generic v7.0.0-rc8 is supplied through **[RHI / RankFTW](https://github.com/RankFTW/rhi-repo/releases/tag/renodx-dlss5-7.0.0-rc8)**, the distribution provider referenced by Feeder's installer. Credit for the add-on remains with Krish and the RenoDX contributors; the provider's download does not confer additional distribution rights.
 
